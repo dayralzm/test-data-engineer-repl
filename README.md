@@ -1,38 +1,66 @@
-# Ejercicio práctico para Data Engineer Replication/Extraction en Deacero.
+Arquitectura
+Este proyecto tiene como base tres servidores de SQL Server simulados:
 
-La estructura de carpetas del repositorio simula 3 servidores de Microsoft SQL Server uno con datos centrales y otros con datos por sucursal:
+Servidor Central (central):
 
-```
-data
-├── central
-│   ├── CatLineasAereas.csv
-├── sucursal1
-│   ├── Pasajeros.csv
-│   ├── Vuelos.csv
-├── sucursal2
-│   ├── Pasajeros.csv
-│   ├── Vuelos.csv
-```
-## Objetivo
+Contiene la tabla CatLineasAereas con los códigos de las líneas aéreas.
+Servidor Sucursal 1 (sucursal1):
 
-El requerimiento funcional consiste en centralizar y replicar la información en el datawareohuse de Bigquery.
+Contiene las tablas Pasajeros y Vuelos de la sucursal 1.
+Servidor Sucursal 2 (sucursal2):
 
-Para esto debe realizar las implementaciones técnicas que considere necesarias para la replicación de datos con CDC y SQL Replicate hacia Bigquery.
+Contiene las tablas Pasajeros y Vuelos de la sucursal 2.
 
-## Información clave
+Objetivos:
+Replicar los datos de SQL Server a Google BigQuery.
+Usar Apache Beam para orquestar el proceso de extracción, transformación y carga (ETL).
+Automatizar la actualización de datos cada 20 minutos.
+Usar CDC y SQL Replicate para mantener los datos sincronizados.
 
-- Deben respetarse las tecnologías de CDC y SQL Replicate.
-- Es importante generar un diagrama de arquitectura sobre la implementación.
-- La actualización de datos debe buscar la menor latencia posible segun la tecnología que se implemente o proponga.
-- Debe buscarse una implementación lo mas cercana al codigo posible.
-- Tienes alguna propuesta o hallazgos respecto a garantizar la calidad/integridad de la replicacón?
+Requisitos
+Python 3.x
+Google Cloud Account y credenciales de acceso para BigQuery.
+Google Cloud SDK instalado.
+SQL Server local con las tablas y datos proporcionados.
+Apache Beam para la orquestación del pipeline ETL.
+pyodbc para la conexión con SQL Server.
 
-## Entrega del Ejercicio
+1. SQL Server:
+Habilitar la replicación de datos usando CDC (Cambio de Datos Capturados) en las tablas relevantes. Puedes hacerlo ejecutando los siguientes comandos en SQL Server:
 
-- Debe realizar un fork de este repositorio para desarrollar y entregar su trabajo o tambien puede subir su proyecto a un repositorio de GitHub y compartir el enlace en un correo dirigido a jguerrero@deacero.com.
-- Asegúrese de que el repositorio incluya:
-    - Todos los recursos usados o generados para la solucion de los ejercicios.
-    - Documentación que explique el proceso seguido y las decisiones tomadas.
-    - Instrucciones claras sobre cómo configurar y ejecutar el proyecto y sus artefactos.
+-- Habilitar CDC para la base de datos
+USE [test_deacero];
+EXEC sys.sp_cdc_enable_db;
 
-Suerte a todos!!! :metal: :nerd_face: :computer:
+-- Habilitar CDC para las tablas de datos
+EXEC sys.sp_cdc_enable_table 
+    @source_schema = 'dbo', 
+    @source_name = 'Pasajeros', 
+    @role_name = NULL;
+
+EXEC sys.sp_cdc_enable_table 
+    @source_schema = 'dbo', 
+    @source_name = 'Vuelos', 
+    @role_name = NULL;
+
+EXEC sys.sp_cdc_enable_table 
+    @source_schema = 'dbo', 
+    @source_name = 'central_lineas_aereas', 
+    @role_name = NULL;
+Estos comandos habilitan CDC para las tablas Pasajeros, Vuelos y central_lineas_aereas en la base de datos test_deacero.
+
+Cómo Ejecutar el Proyecto
+Configura las credenciales de Google Cloud
+Descarga el archivo JSON de las credenciales desde tu proyecto de Google Cloud.
+Establece la variable de entorno para las credenciales 
+
+Conexión con SQL Server:
+Asegúrate de que tu servidor SQL Server esté corriendo y accesible desde el entorno donde ejecutes el script.
+Reemplaza localhost y las credenciales de conexión en el script si es necesario.
+
+Ejecuta el pipeline ETL:
+
+El pipeline de Apache Beam se ejecuta de la siguiente manera:
+python load_to_BQ.py
+
+
