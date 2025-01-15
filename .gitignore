@@ -1,0 +1,6 @@
+scripts
+venv
+site-packages
+pip
+/venv/Lib/site-packages/pip
+/venv/Lib/site-packages
